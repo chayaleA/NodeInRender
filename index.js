@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from "cors"
 import bodyParser from "body-parser";
-import fetch from 'node-fetch';
+import sdk from '@api/render-api';
 
 const app = express()
 
@@ -14,23 +14,10 @@ app.use(bodyParser.json());
 const port = 3000
 
 app.get('/', async (req, res) => {
-    try {
-        const renderResponse = await fetch('https://api.render.com/v1/services?limit=20', {
-            headers: {
-                'header': 'accept: application/json',
-                'Authorization': `Bearer ${RENDER_API_KEY}`
-            }
-        });
-
-        if (!renderResponse.ok) {
-            throw new Error('Failed to fetch data from Render API');
-        }
-        const renderApps = await renderResponse;
-        res.json(renderApps);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        res.status(500)('error Failed to fetch data' );
-    }
+    sdk.auth(RENDER_API_KEY);
+    sdk.getServices({limit: '20'})
+      .then(({ data }) =>  res.json(data))
+      .catch(err => console.error(err));
 });
 
 app.listen(port, () => {
